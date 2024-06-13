@@ -1,8 +1,8 @@
 import React from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
-import logo from '../assets/loggo.png';
-import { Navigate, useNavigate } from 'react-router-dom';
+// import logo from '../assets/loggo.png';
+import { useNavigate } from 'react-router-dom';
 
 interface RegisterFormData {
   firstName: string;
@@ -43,8 +43,8 @@ const RegisterForm: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
+      <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full sm:w-3/4 lg:w-1/2 xl:w-1/3">
         <div className="text-center mb-6 text-2xl font-bold">
           {/* <img src={logo} alt="Photomania Logo" className="h-16 mx-auto" /> */}
           Photomania
