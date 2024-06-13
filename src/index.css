@@ -3,20 +3,3 @@
 @tailwind components;
 @tailwind utilities;
 
-
-/* src/styles.css */
-.nav-link {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.active-link {
-  background-color: #FF0000; /* Or any other color you prefer */
-  color: white; /* Active link text color */
-  border-radius: 0.375rem; /* Adjust the border-radius as needed */
-}
-
-/* Ensure hover styles for other links */
-.nav-link:hover {
-  background-color: #DAE4FF;
-  color: black;
-}
