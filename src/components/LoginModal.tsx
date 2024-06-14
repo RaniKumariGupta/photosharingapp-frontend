@@ -25,7 +25,7 @@ const LoginModal: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
+    // setError,
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
   });
@@ -37,10 +37,10 @@ const LoginModal: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.message || 'Login failed');
+      // }
       return response.json();
     },
     onSuccess: (data) => {
@@ -51,9 +51,9 @@ const LoginModal: React.FC = () => {
     },
     onError: (error) => {
       console.error(error);
-      if (error instanceof Error) {
-        setError('root.serverError', { message: error.message });
-      }
+      // if (error instanceof Error) {
+      //   setError('root.serverError', { message: error.message });
+      // }
       toast.error(error.message || 'Login failed');
     },
   });
