@@ -11,11 +11,12 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
-    "@tanstack/react-query": "^5.40.1",
+    "@tanstack/react-query": "^5.45.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.5",
     "react-icons": "^5.2.1",
+    "react-infinite-scroll-hook": "^4.1.1",
     "react-query": "^3.39.3",
     "sonner": "^1.5.0",
     "zod": "^3.23.8"

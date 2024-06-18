@@ -1,29 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import logo from '../assets/Photomania (1).png';
 import { FaCloudUploadAlt } from 'react-icons/fa';
+import { postSchema, PostData } from '../schema/zodSchema';
+import logo from '../assets/rmlogoo.png';
 
-const postSchema = z.object({
-  caption: z.string().nonempty('Caption is required'),
-  image: z
-    .instanceof(FileList)
-    .refine((files) => files.length === 1, 'Image is required'),
-});
+const Create = () => {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
-type PostData = z.infer<typeof postSchema>;
-
-const Create: React.FC = () => {
-  // const [imagePreview, setImagePreview] = useState<string | null>(null);
   const navigate = useNavigate();
-
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<PostData>({
     resolver: zodResolver(postSchema),
@@ -32,8 +25,10 @@ const Create: React.FC = () => {
   const mutation = useMutation({
     mutationFn: async (data: PostData) => {
       const formData = new FormData();
+      if (file) {
+        formData.append('image', file);
+      }
       formData.append('caption', data.caption);
-      formData.append('image', data.image[0]);
 
       const response = await fetch('http://localhost:3000/photos/upload', {
         method: 'POST',
@@ -45,39 +40,44 @@ const Create: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Upload failed');
+        console.error(errorData);
+        throw new Error('Upload failed');
       }
-
-      return response.json();
     },
     onSuccess: () => {
       toast.success('Photo uploaded successfully!');
       navigate('/');
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: () => {
+      toast.error('An error occurred');
     },
   });
 
-  const onSubmit = (data: PostData) => {
+  const submitData = (data: PostData) => {
     mutation.mutate(data);
   };
 
-  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0];
-  //   if (file) {
-  //     setImagePreview(URL.createObjectURL(file));
-  //   }
-  // };
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setValue('image', selectedFile);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
 
   return (
     <div className="flex flex-col md:flex-row bg-gray-100 p-6 md:p-12 rounded-lg shadow-lg mx-auto my-10 max-w-4xl">
       <div className="md:flex-1 p-6 bg-white rounded-lg shadow-lg m-4">
         <div className="flex items-center mb-6">
-          <img src={logo} alt="Photomania Logo" className="h-12 mr-4" />
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Photomania</h2>
+          <img src={logo} alt="Photomania" className="h-12 mr-4" />
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(submitData)} className="space-y-6">
           <div>
             <label className="block text-gray-700 text-lg font-medium mb-2">
               Caption
@@ -101,26 +101,24 @@ const Create: React.FC = () => {
           </button>
         </form>
       </div>
-
       <div className="md:flex-1 p-6 flex items-center justify-center bg-gray-50 rounded-lg shadow-lg m-4">
         <label className="cursor-pointer flex flex-col items-center justify-center bg-white p-6 rounded-lg border border-gray-300 hover:bg-gray-50 transition duration-200 shadow-md">
-          <FaCloudUploadAlt className="text-6xl text-[#8faaf3] mb-4" />
+          <FaCloudUploadAlt className="text-6xl text-[#6c8fef] mb-4" />
           <span className="text-gray-700 font-medium text-lg">
             Click to upload image
           </span>
-
           <input
             type="file"
             {...register('image')}
             className="hidden"
             accept="image/*"
-            // onChange={handleImageChange}
+            onChange={handleFileInputChange}
           />
           {errors.image && (
             <p className="text-red-500 text-sm mt-2">{errors.image.message}</p>
           )}
         </label>
-        {/* {imagePreview && (
+        {imagePreview && (
           <div className="mt-4">
             <img
               src={imagePreview}
@@ -128,7 +126,7 @@ const Create: React.FC = () => {
               className="max-w-full h-auto rounded-lg shadow-md"
             />
           </div>
-        )} */}
+        )}
       </div>
     </div>
   );
