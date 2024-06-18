@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useModal } from '../context/ModalContext';
 import { toast } from 'sonner';
+import logo from '../assets/rmlogoo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -25,7 +26,7 @@ const LoginModal: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-    // setError,
+    setError,
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
   });
@@ -37,10 +38,10 @@ const LoginModal: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   throw new Error(errorData.message || 'Login failed');
-      // }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -51,9 +52,9 @@ const LoginModal: React.FC = () => {
     },
     onError: (error) => {
       console.error(error);
-      // if (error instanceof Error) {
-      //   setError('root.serverError', { message: error.message });
-      // }
+      if (error instanceof Error) {
+        setError('root.serverError', { message: error.message });
+      }
       toast.error(error.message || 'Login failed');
     },
   });
@@ -69,6 +70,7 @@ const LoginModal: React.FC = () => {
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 sm:mx-0">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Login</h2>
+          <img src={logo} alt="Photomania" className="w-24 mr-4" />
           <button onClick={closeLoginModal} className="text-gray-700">
             &times;
           </button>

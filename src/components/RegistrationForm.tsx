@@ -1,60 +1,81 @@
 import React from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
-// import logo from '../assets/loggo.png';
 import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useModal } from '../context/ModalContext';
+import { toast } from 'sonner';
+import logo from '../assets/rmlogoo.png';
 
-interface RegisterFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
+const registrationSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z
+    .string()
+    .min(6, 'Password must be at least 6 characters long')
+    .max(12),
+});
 
-const RegisterForm: React.FC = () => {
+type RegistrationData = z.infer<typeof registrationSchema>;
+
+const RegistrationForm: React.FC = () => {
   const navigate = useNavigate();
+  const { isRegisterModalOpen, closeRegisterModal } = useModal();
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormData>();
+  } = useForm<RegistrationData>({
+    resolver: zodResolver(registrationSchema),
+  });
 
   const { mutate } = useMutation({
-    mutationFn: (data: RegisterFormData) => {
-      return fetch('http://localhost:3000/users/register', {
+    mutationFn: async (data: RegistrationData) => {
+      const response = await fetch('http://localhost:3000/users/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+      return response.json();
     },
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
+      toast.success('Registration successfull Please log in.');
       navigate('/login');
+      closeRegisterModal();
     },
-
     onError: (error) => {
-      console.log(error);
+      toast.error(error.message || 'Registration failed');
     },
   });
-  const onSubmit: SubmitHandler<RegisterFormData> = (data) => {
+
+  const onSubmit: SubmitHandler<RegistrationData> = (data) => {
     mutate(data);
   };
 
+  if (!isRegisterModalOpen) return null;
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
-      <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full sm:w-3/4 lg:w-1/2 xl:w-1/3">
-        <div className="text-center mb-6 text-2xl font-bold">
-          {/* <img src={logo} alt="Photomania Logo" className="h-16 mx-auto" /> */}
-          Photomania
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 sm:mx-0">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Register</h2>
+          <img src={logo} alt="Photomania" className="w-24 mr-4" />
+          <button onClick={closeRegisterModal} className="text-gray-700">
+            &times;
+          </button>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-gray-700">First Name</label>
             <input
               type="text"
-              {...register('firstName', { required: 'First name is required' })}
+              {...register('firstName')}
               className="border rounded p-2 w-full"
             />
             {errors.firstName && (
@@ -67,7 +88,7 @@ const RegisterForm: React.FC = () => {
             <label className="block text-gray-700">Last Name</label>
             <input
               type="text"
-              {...register('lastName', { required: 'Last name is required' })}
+              {...register('lastName')}
               className="border rounded p-2 w-full"
             />
             {errors.lastName && (
@@ -80,7 +101,7 @@ const RegisterForm: React.FC = () => {
             <label className="block text-gray-700">Email</label>
             <input
               type="email"
-              {...register('email', { required: 'Email is required' })}
+              {...register('email')}
               className="border rounded p-2 w-full"
             />
             {errors.email && (
@@ -93,7 +114,7 @@ const RegisterForm: React.FC = () => {
             <label className="block text-gray-700">Password</label>
             <input
               type="password"
-              {...register('password', { required: 'Password is required' })}
+              {...register('password')}
               className="border rounded p-2 w-full"
             />
             {errors.password && (
@@ -114,4 +135,4 @@ const RegisterForm: React.FC = () => {
   );
 };
 
-export default RegisterForm;
+export default RegistrationForm;
