@@ -1,59 +1,101 @@
-//  import { useQuery } from '@tanstack/react-query';
-// import './App.css';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { ModalProvider } from './context/ModalContext';
+import Layout from './components/Layout';
+import RegistrationForm from './components/RegistrationForm';
+import LoginModal from './components/LoginModal';
+import Create from './pages/Create';
+import { Toaster } from 'sonner';
+import Explore from './pages/Explore';
+import SinglePhoto from './pages/SinglePhoto';
+import EditPost from './pages/EditPost';
+import ProfilePage from './pages/ProfilePage';
+import ProfileEdit from './pages/ProfileEdit';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
-// function App() {
-//   const { isLoading, error, data } = useQuery({
-//     queryKey: ['movies'],
-//     queryFn: ({ signal }) =>
-//       fetch('http://localhost:3000/photos/upload', options).then((response) => {
-//         if (!response.ok) {
-//           throw new Error('Failed to fetch');
-//         }
-//         return response.json();
-//       }),
-//   });
+const queryClient = new QueryClient();
 
-//   if (isLoading) return 'Loading...';
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      {
+        path: '/explore',
+        element: <Explore />,
+      },
+      {
+        path: '/photos/:photoId',
+        element: <SinglePhoto />,
+      },
+      {
+        path: '/photos/edit/:photoId',
+        element: (
+          <ProtectedRoute>
+            <EditPost />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/photos/delete/:photoId',
+        element: (
+          <ProtectedRoute>
+            <SinglePhoto />
+          </ProtectedRoute>
+        ),
+      },
 
-//   if (error) return 'An error has occurred: ' + error.message;
-//   return (
-//     <>
-//       <h1 className="text-3xl font-bold underline">Hello world!</h1>
-//     </>
-//   );
-// }
+      {
+        path: '/create',
+        element: (
+          <ProtectedRoute>
+            <Create />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/profile',
+        element: (
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/editprofile',
+        element: (
+          <ProtectedRoute>
+            <ProfileEdit />
+          </ProtectedRoute>
+        ),
+      },
 
-// export default App;
+      {
+        path: 'register',
+        element: <RegistrationForm />,
+      },
+      {
+        path: 'login',
+        element: <LoginModal />,
+      },
+    ],
+  },
+]);
 
-import { useQuery } from '@tanstack/react-query';
-import './App.css';
-
-const fetchMovies = async ({ signal }: { signal: AbortSignal }) => {
-  const response = await fetch('http://localhost:5000/photos/explore');
-  if (!response.ok) {
-    throw new Error('Failed to fetch');
-  }
-  return response.json();
-};
-
-function App() {
-  const { isLoading, error, data } = useQuery({
-    queryKey: ['movies'],
-    queryFn: fetchMovies,
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-
-  if (error)
-    return <div>An error has occurred: {(error as Error).message}</div>;
-
+const App: React.FC = () => {
+  // return <RouterProvider router={router} />;
   return (
-    <>
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-      {/* Render your data here */}
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <ModalProvider>
+          <RouterProvider router={router} />
+          <Toaster position="top-right" />
+        </ModalProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
-}
+};
 
 export default App;
